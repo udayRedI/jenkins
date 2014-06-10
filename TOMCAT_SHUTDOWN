@@ -1,0 +1,38 @@
+#!/bin/bash
+#TOMCAT START STOP
+
+AZURE_KEY_LOCATION="/home/ubuntu/.ssh/azurekey.pem"
+TOMCAT_HOME="/home/ubuntu/applications/apache-tomcat/current/"
+TOMCAT_HOME_BIN=$TOMCAT_HOME"bin/"
+EXPORT_JAVA_HOME="export JAVA_HOME='/home/ubuntu/tools/jdk/current'"
+TOMCAT_SHUTDOWN="$EXPORT_JAVA_HOME;
+                 cd $TOMCAT_HOME_BIN; 
+                 sh shutdown.sh;
+                 exit;"
+
+killTomcatIfStillUp(){
+    applicationUserHost="ubuntu@"$1
+    echo "KIlling tomcat in "$applicationUserHost
+    pid=$(./GET_TOMCAT_PID $applicationUserHost "tomcat")
+    echo "PID is :"$pid;
+    if [ -n "$pid" ]; then
+        echo "Tomcat is still up, killing Tomcat"
+        echo "sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost \"sudo kill -9 $pid;\""
+        sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost "sudo kill -9 $pid;"
+    fi
+}
+
+shutDownTomcat(){
+    applicationUserHost="ubuntu@"$1
+    pid=$(./GET_TOMCAT_PID $applicationUserHost "tomcat")
+    echo "PID is :"$pid;
+    if [ -n "$pid" ]; then
+        echo "sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost $TOMCAT_SHUTDOWN"
+        sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost $TOMCAT_SHUTDOWN
+    fi
+}
+
+for ip; do
+    shutDownTomcat $ip
+    killTomcatIfStillUp $ip
+done

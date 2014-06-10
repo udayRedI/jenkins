@@ -1,0 +1,9 @@
+#!/bin/bash
+#check tomcat status
+AZURE_KEY_LOCATION="/home/ubuntu/.ssh/azurekey.pem"
+
+
+applicationUserHost=$1
+processName=$2
+pid=$(sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost ''ps -ef | grep $processName | awk '{ print $2 }')
+echo $pid;

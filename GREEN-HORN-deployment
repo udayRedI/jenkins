@@ -1,0 +1,37 @@
+#!/bin/bash
+# Deploy green-horn
+AZURE_KEY_LOCATION="/home/ubuntu/.ssh/azurekey.pem"
+SERVER_IP=$1
+SERVER_TYPE=$2
+SERVER_USER_HOST="ubuntu@"$SERVER_IP;
+GREENHORN_HOME="/home/ubuntu/workspaces/jenkins/greenhorn-ecourses-web-$SERVER_TYPE/"
+GREENHORN_DIST=$GREENHORN_HOME"dist/"
+SERVER_GREEN_HORN_DIST="/home/ubuntu/dist/"
+APACHE_HOME="/var/www/"
+SERVER_HOST_DESTINATION=$SERVER_USER_HOST:$SERVER_GREEN_HORN_DIST
+CREATE_GREENHORN="mkdir -p greenhorn"
+CLEAN_OLD_GREENHORN="rm -rf $SERVER_GREEN_HORN_DIST;
+                     rm -rf $APACAHE_HOME;
+                     exit;"
+DEPLOY_GREENHORN="cp -r $SERVER_GREEN_HORN_DIST* $APACHE_HOME;
+                  exit;"
+COPY_EPUB="cp -r /home/ubuntu/epub/Pearson_Ciccarelli/ /var/www/"
+RUN_BOWER_AND_GRUNT="cd $GREENHORN_HOME;
+                     npm install;
+                     bower install;
+                     grunt build;"
+echo "sudo ssh -i $AZURE_KEY_LOCATION $SERVER_USER_HOST $CLEAN_OLD_GREENHORN"
+#Clean green horn.
+sudo ssh -i $AZURE_KEY_LOCATION $SERVER_USER_HOST "$CLEAN_OLD_GREENHORN"
+
+echo "sudo scp -i $AZURE_KEY_LOCATION $GREENHORN_DIST $SERVER_HOST_DESTINATION"
+#Copy greenhorn dist folder to server.
+sudo scp -r -i $AZURE_KEY_LOCATION $GREENHORN_DIST $SERVER_HOST_DESTINATION
+
+echo "sudo ssh -i $AZURE_KEY_LOCATION $SERVER_USER_HOST $DEPLOY_GREENHORN"
+#Deploy the dist folder to the apache home.
+sudo ssh -i $AZURE_KEY_LOCATION $SERVER_USER_HOST $DEPLOY_GREENHORN
+
+# echo "sudo ssh -i $AZURE_KEY_LOCATION $SERVER_USER_HOST $COPY_EPUB"
+#Copy EPUB file.
+# sudo ssh -i $AZURE_KEY_LOCATION $SERVER_USER_HOST $COPY_EPUB

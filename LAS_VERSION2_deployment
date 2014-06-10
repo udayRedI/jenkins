@@ -1,0 +1,87 @@
+#!/bin/bash
+# Copy and automate operations 
+AZURE_KEY_LOCATION="/home/ubuntu/.ssh/azurekey.pem"
+
+SERVER_IP=$1
+SERVER_NAME=$2
+LAS_APPLICATION_WAR_PATH=$3
+APPLICATION_FOLDER_NAME=$SERVER_NAME"/"
+APPLICATION_WAR_NAME=$SERVER_NAME".war"
+
+TOMCAT_HOME="/home/ubuntu/applications/apache-tomcat/current/"
+TOMCAT_HOME_BIN=$TOMCAT_HOME"bin/"
+TOMCAT_WEBAPPS=$TOMCAT_HOME"webapps/"
+TOMCAT_WEBAPPS=$TOMCAT_HOME"webapps/"
+JENKINS_HOME="/home/ubuntu/workspaces/jenkins/"
+EXPORT_JAVA_HOME="export JAVA_HOME='/home/ubuntu/tools/jdk/current'" 
+
+
+#LAS Server operation variables
+LAST_SUCCESSFUL_BUILD="/home/ubuntu/ecourses/backup/deployment/lastSuccessfulBuild/"
+
+LAS_SERVER_WAR_PATH=$JENKINS_HOME$LAS_APPLICATION_WAR_PATH
+LAS_SERVER_USER_HOST="ubuntu@"$SERVER_IP
+LAS_SERVER_COPY_DESTINATION_FOLDER=$LAS_SERVER_USER_HOST":"$TOMCAT_WEBAPPS
+LAS_SERVER_UNZIP_WAR="cd $TOMCAT_WEBAPPS;
+        unzip $APPLICATION_WAR_NAME -d $APPLICATION_FOLDER_NAME;
+        rm $APPLICATION_WAR_NAME;
+        $EXPORT_JAVA_HOME;
+        exit;"
+
+
+
+
+backup(){
+    applicationUserHost=$1
+    application=$2
+    echo "sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost \"mkdir -p $LAST_SUCCESSFUL_BUILD;
+        cd $LAST_SUCCESSFUL_BUILD;
+        sudo rm -r $application
+        cd $TOMCAT_WEBAPPS;
+        sudo mv $application $LAST_SUCCESSFUL_BUILD;
+        exit;\""
+    sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost "mkdir -p $LAST_SUCCESSFUL_BUILD;
+        cd $LAST_SUCCESSFUL_BUILD;
+        sudo rm -r $application
+        cd $TOMCAT_WEBAPPS;
+        sudo mv $application $LAST_SUCCESSFUL_BUILD;
+        exit;"
+}
+
+copyFile() {
+    #Secure copy
+    echo "sudo scp -i $AZURE_KEY_LOCATION $1 $2"
+    sudo scp -i $AZURE_KEY_LOCATION $1 $2 
+}
+
+executeServer (){
+
+    if [ $1 == "LAS" ];then
+        #Login and shut down the tomcat server 
+        #echo "Login to $LAS_SERVER_USER_HOST and shut down the tomcat server."
+        #shutDownTomcat $LAS_SERVER_USER_HOST
+        #Kill Tomcat if its still up.
+        #echo "Kill Tomcat if still up."
+        #killTomcatIfStillUp $LAS_SERVER_USER_HOST
+        #Move the old /home/ubuntu/applications/apache-tomcat/current/webapp/las-api
+        #to /home/ubuntu/ecourses/backup/deployment/lastSuccessfulBuild
+        echo "Backup the previous  folder in $TOMCAT_WEBAPPS to $LAST_SUCCESSFUL_BUILD ."
+        backup $LAS_SERVER_USER_HOST $APPLICATION_FOLDER_NAME
+        #copy war file 10.11.0.92 in /home/ubuntu/applications/apache-tomcat/current/las/las-api/target/las-api.war
+        #to /home/ubuntu/applications/apache-tomcat/current/webapps
+        echo "Copy war file from $LAS_SERVER_COPY_DESTINATION_FOLDER
+        to $TOMCAT_WEBAPPS in $LAS_SERVER_USER_HOST"
+        copyFile $LAS_SERVER_WAR_PATH $LAS_SERVER_COPY_DESTINATION_FOLDER
+        #Login and start the tomcat server and 
+        #and unzip las-api.jar in /home/ubuntu/applications/apache-tomcat/current/las/las-api/target/.
+        echo "Unzip las-api.war in /home/ubuntu/applications/apache-tomcat/current/las/las-api/target/ and backup old las-api/." 
+        echo "Login to $LAS_SERVER_USER_HOST and start the tomcat server."
+        sudo ssh -i $AZURE_KEY_LOCATION $LAS_SERVER_USER_HOST $LAS_SERVER_UNZIP_WAR
+        echo "sudo ssh -i $AZURE_KEY_LOCATION $LAS_SERVER_USER_HOST $LAS_SERVER_UNZIP_WAR"
+
+    fi
+}
+
+#DEV LAS
+echo "LAS Server"
+executeServer LAS

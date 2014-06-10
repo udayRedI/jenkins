@@ -1,0 +1,24 @@
+#!/bin/bash
+#TOMCAT START STOP
+
+AZURE_KEY_LOCATION="/home/ubuntu/.ssh/azurekey.pem"
+TOMCAT_HOME="/home/ubuntu/applications/apache-tomcat/current/"
+TOMCAT_HOME_BIN=$TOMCAT_HOME"bin/"
+EXPORT_JAVA_HOME="export JAVA_HOME='/home/ubuntu/tools/jdk/current'"
+TOMCAT_START="$EXPORT_JAVA_HOME;
+                 cd $TOMCAT_HOME_BIN; 
+                 sh startup.sh;
+                 exit;"
+
+RestartTomcat(){
+    applicationUserHost="ubuntu@"$1
+    echo "sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost $TOMCAT_START"
+    sudo ssh -i $AZURE_KEY_LOCATION $applicationUserHost $TOMCAT_START
+}
+
+for ip; do
+    echo "Shutdown tomcat if up"
+    echo $(./TOMCAT_SHUTDOWN $ip)
+    echo "Restart tomcat"
+    RestartTomcat $ip
+done
