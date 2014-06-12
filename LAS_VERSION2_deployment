@@ -3,15 +3,16 @@
 AZURE_KEY_LOCATION="/home/ubuntu/.ssh/azurekey.pem"
 
 SERVER_IP=$1
-SERVER_NAME=$2
+APPLICATION_NAME=$2
 LAS_APPLICATION_WAR_PATH=$3
-APPLICATION_FOLDER_NAME=$SERVER_NAME"/"
-APPLICATION_WAR_NAME=$SERVER_NAME".war"
+
+APPLICATION_FOLDER_NAME=$APPLICATION_NAME"/"
+APPLICATION_WAR_NAME=$APPLICATION_NAME".war"
 
 TOMCAT_HOME="/home/ubuntu/applications/apache-tomcat/current/"
-TOMCAT_HOME_BIN=$TOMCAT_HOME"bin/"
-TOMCAT_WEBAPPS=$TOMCAT_HOME"webapps/"
-TOMCAT_WEBAPPS=$TOMCAT_HOME"webapps/"
+TOMCAT_HOME_BIN=$TOMCAT_HOME"bin/" # Binary files location for tomcat
+TOMCAT_WEBAPPS=$TOMCAT_HOME"webapps/" # Place to deploy web applications
+
 JENKINS_HOME="/home/ubuntu/workspaces/jenkins/"
 EXPORT_JAVA_HOME="export JAVA_HOME='/home/ubuntu/tools/jdk/current'" 
 
